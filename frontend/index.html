@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Zomato Notes</title>
+
+    <!-- Google Font -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <!-- Font Awesome -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+<!  =============== Create the Header =============== >
+<header>
+
+    <div class="logo">
+
+        <i class="fa-solid fa-utensils"></i>
+
+        <div>
+
+            <h1>Zomato Notes</h1>
+
+            <p>Internal Incident Knowledge Base</p>
+
+        </div>
+
+    </div>
+
+    <div class="profile">
+
+        <i class="fa-solid fa-user"></i>
+
+        <span>Support Engineer</span>
+
+    </div>
+
+</header>
+
+ <! =============== Search bar ===============>
+
+<section class="search">
+
+    <input
+        type="text"
+        placeholder="Search Notes">
+
+    <button>
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        Search
+
+    </button>
+
+</section>
+
+
+<! =============== create the split layout =============== >
+
+<div class="dashboard">
+
+    <! =============== Create Note div =============== >
+
+    <div class="left">
+
+        <h2>
+            <i class="fa-solid fa-note-sticky"></i>
+            Create New Note
+        </h2>
+
+        <p class="subtitle">
+            Capture important incident details for future reference.
+        </p>
+
+        <form id="noteForm">
+
+            <label>Title</label>
+            <input
+                type="text"
+                id="title"
+                placeholder="Enter note title">
+
+            <label>Description</label>
+
+            <textarea
+                id="description"
+                rows="6"
+                placeholder="Describe the issue..."></textarea>
+
+            <label>Engineer</label>
+
+            <select id="user">
+
+                <option>Select Engineer</option>
+
+                <option>Rahul</option>
+
+                <option>Priya</option>
+
+                <option>Amit</option>
+
+            </select>
+
+            <button type="submit">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Save Note
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <! =============== Notes List div =============== >
+
+
+    <div class="right">
+
+        <div class="notes-header">
+
+            <h2>
+                <i class="fa-solid fa-book"></i>
+                Incident Notes
+            </h2>
+
+            <span id="noteCount">0 Notes</span>
+
+        </div>
+
+        <!-- JS will insert notes here -->
+        <div id="notesContainer">
+
+            <!-- Loading State -->
+
+            <div id="loadingState" class="state-card">
+
+                <i class="fa-solid fa-spinner fa-spin"></i>
+
+                <h3>Loading Notes...</h3>
+
+                <p>Please wait while we fetch notes from the database.</p>
+
+            </div>
+
+
+            <!-- Empty State -->
+
+            <div id="emptyState" class="state-card hidden">
+
+                <i class="fa-regular fa-note-sticky"></i>
+
+                <h3>No Notes Available</h3>
+
+                <p>Create your first incident note.</p>
+
+            </div>
+
+
+            <!-- Error State -->
+
+            <div id="errorState" class="state-card hidden">
+
+                <i class="fa-solid fa-circle-exclamation"></i>
+
+                <h3>Unable to Load Notes</h3>
+
+                <p>Please check the server and try again.</p>
+
+            </div>
+
+            <!-- Notes will be inserted here -->
+             
+            <div id="notesList"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<! =============== Bottom div split layout =============== >
+
+<div class="bottom-dashboard">
+
+    <! ---------------  Smart Search --------------- >
+
+    <div class="smart-search">
+
+        <h2>
+
+            <i class="fa-solid fa-robot"></i>
+
+            Smart Search
+
+        </h2>
+
+        <p class="subtitle">
+
+            Find similar incident notes using AI.
+
+        </p>
+
+        <div class="smart-search-box">
+
+            <input
+                type="text"
+                id="smartSearchInput"
+                placeholder="Describe the issue...">
+
+            <button id="smartSearchBtn">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                Search
+
+            </button>
+
+        </div>
+
+        <div id="smartSearchResults">
+
+            <p class="empty-result">
+
+                No search results yet.
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!--------------- Reports --------------->
+
+    <div class="reports">
+
+        <h2>
+
+            <i class="fa-solid fa-chart-simple"></i>
+
+            Quick Reports
+
+        </h2>
+
+        <div class="report-grid">
+
+            <div class="report-card">
+
+                <i class="fa-solid fa-note-sticky"></i>
+
+                <h3 id="totalNotes">0</h3>
+
+                <p>Total Notes</p>
+
+            </div>
+
+            <div class="report-card">
+
+                <i class="fa-solid fa-users"></i>
+
+                <h3 id="totalUsers">0</h3>
+
+                <p>Engineers</p>
+
+            </div>
+
+            <div class="report-card">
+
+                <i class="fa-solid fa-tags"></i>
+
+                <h3 id="popularTag">-</h3>
+
+                <p>Popular Tag</p>
+
+            </div>
+
+            <div class="report-card">
+
+                <i class="fa-solid fa-calendar-days"></i>
+
+                <h3 id="todayNotes">0</h3>
+
+                <p>Today's Notes</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= Bulk Import ================= -->
+
+<section class="bulk-import">
+
+    <div class="bulk-header">
+
+        <h2>
+
+            <i class="fa-solid fa-file-import"></i>
+
+            Bulk Import Notes
+
+        </h2>
+
+        <p>
+
+            Upload a text file to import multiple notes into the system.
+
+        </p>
+
+    </div>
+
+    <div class="bulk-content">
+
+        <input
+            type="file"
+            id="bulkFile"
+            accept=".txt">
+
+        <button id="importBtn">
+
+            <i class="fa-solid fa-upload"></i>
+
+            Import Notes
+
+        </button>
+
+    </div>
+
+    <div id="importStatus">
+
+        No file selected.
+
+    </div>
+
+</section>
+
+<script src="script.js"></script>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <div class="footer-left">
+
+        <h3>
+
+            <i class="fa-solid fa-utensils"></i>
+
+            Zomato Notes
+
+        </h3>
+
+        <p>
+
+            Internal Knowledge Base for On-Call Support Engineers
+
+        </p>
+
+    </div>
+
+    <div class="footer-right">
+
+        <span>
+
+            <i class="fa-solid fa-code"></i>
+
+            FastAPI
+
+        </span>
+
+        <span>
+
+            <i class="fa-solid fa-database"></i>
+
+            SQLAlchemy
+
+        </span>
+
+        <span>
+
+            <i class="fa-solid fa-robot"></i>
+
+            AI Search
+
+        </span>
+
+    </div>
+
+</footer>
