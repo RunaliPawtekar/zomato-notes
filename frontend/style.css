@@ -146,6 +146,63 @@ header{
 
 }
 
+/* ============== clear search ============ */
+/* =============== Notes Actions =============== */
+
+.notes-actions{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+}
+
+/* =============== Clear Filter Button =============== */
+
+.clear-search-btn{
+
+    display:none;               /* Show only when filter is active */
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px 16px;
+
+    background:#475569;
+
+    color:#ffffff;
+
+    border:none;
+
+    border-radius:20px;
+
+    font-size:14px;
+
+    font-weight:500;
+
+    cursor:pointer;
+
+    transition:all .3s ease;
+
+}
+
+.clear-search-btn:hover{
+
+    background:#334155;
+
+    transform:translateY(-2px);
+
+}
+
+.clear-search-btn:active{
+
+    transform:scale(.97);
+
+}
+
 /* =============== Create the split layout =============== */
 
 .dashboard{
@@ -181,6 +238,83 @@ header{
     border-radius:12px;
 
     padding:20px;
+
+}
+
+/* =============== Message =============== */
+
+.message{
+
+    position:fixed;
+
+    top:20px;
+
+    right:20px;
+
+    z-index:9999;
+
+    min-width:300px;
+
+    max-width:400px;
+
+    padding:15px 20px;
+
+    border-radius:10px;
+
+    font-weight:500;
+
+    color:white;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+
+    transition:all .3s ease;
+
+    animation:slideIn .3s ease;
+
+}
+.message.success{
+
+    background:#16a34a;
+
+}
+
+.message.error{
+
+    background:#dc2626;
+
+}
+
+.hidden{
+
+    display:none;
+
+}
+
+.message.info{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+@keyframes slideIn{
+
+    from{
+
+        opacity:0;
+
+        transform:translateX(100%);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateX(0);
+
+    }
 
 }
 

@@ -54,6 +54,9 @@
 
 </header>
 
+<! =============== message ====================== >
+<div id="messageBox" class="message hidden"></div>
+
  <! =============== Search bar ===============>
 <section class="top-dashboard">
 
@@ -197,11 +200,26 @@
         <div class="notes-header">
 
             <h2>
-                <i class="fa-solid fa-book"></i>
-                Incident Notes
+                <i class="fa-solid fa-note-sticky"></i>
+                Notes List
             </h2>
 
-            <span id="noteCount">0 Notes</span>
+            <div class="notes-actions">
+
+                <span id="noteCount">
+                    Total Notes: 0
+                </span>
+
+                <button
+                    id="clearSearchBtn"
+                    class="clear-search-btn">
+
+                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                    Clear Filter
+
+                </button>
+
+            </div>
 
         </div>
 

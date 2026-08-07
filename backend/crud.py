@@ -47,7 +47,8 @@ def create_note(db: Session, note: schemas.NoteCreate):
         title=note.title,
         content=note.content,
         tags=generate_tags(note.content),
-        user_id=note.user_id
+        user_id=note.user_id,
+        is_imported=False
     )
 
     db.add(db_note)
@@ -186,7 +187,8 @@ def import_notes(db: Session, file: UploadFile):
             title=note_data["title"],
             content=note_data["content"],
             tags=generate_tags(note_data["content"]),
-            user_id=note_data["user_id"]
+            user_id=note_data["user_id"],
+            is_imported=True
         )
 
         db.add(db_note)
@@ -225,10 +227,18 @@ def search_notes(db: Session, keyword: str):
 
 def get_reports(db: Session):
 
+    # Total Notes
     total_notes = db.query(models.Note).count()
 
+    # Total Users
     total_users = db.query(models.User).count()
 
+    # Imported Notes
+    imported_notes = db.query(models.Note).filter(
+        models.Note.is_imported == True
+    ).count()
+
+    # Most Used Tag
     all_notes = db.query(models.Note).all()
 
     tags = []
@@ -238,7 +248,7 @@ def get_reports(db: Session):
         if note.tags:
 
             tags.extend(
-                [tag.strip() for tag in note.tags.split(",")]
+                [tag.strip() for tag in note.tags.split(",") if tag.strip()]
             )
 
     if tags:
@@ -249,7 +259,7 @@ def get_reports(db: Session):
 
     else:
 
-        most_used_tag = "N/A"
+        most_used_tag = "No Tags"
 
     return {
 
@@ -259,6 +269,6 @@ def get_reports(db: Session):
 
         "most_used_tag": most_used_tag,
 
-        "imported_notes": total_notes
+        "imported_notes": imported_notes
 
     }

@@ -4,7 +4,8 @@ from sqlalchemy import (
     String,
     Text,
     DateTime,
-    ForeignKey
+    ForeignKey,
+    Boolean
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -29,9 +30,6 @@ class Note(Base):
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     tags = Column(String(255), nullable=True)
-
-    from datetime import datetime
-
     created_at = Column(
         DateTime,
         default=datetime.now
@@ -42,7 +40,7 @@ class Note(Base):
         default=datetime.now,
         onupdate=datetime.now
     )
-
+    is_imported = Column(Boolean, default=False, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Each note belongs to one user

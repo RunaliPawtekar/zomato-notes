@@ -21,6 +21,33 @@ const saveBtn = document.getElementById("saveBtn");
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 
+/* =========== Message ================== */
+
+const messageBox = document.getElementById("messageBox");
+
+let messageTimeout;
+
+function showMessage(message, type = "success") {
+
+    // Clear previous timer
+    clearTimeout(messageTimeout);
+
+    // Set message
+    messageBox.textContent = message;
+
+    // Remove hidden class and apply type
+    messageBox.className = `message ${type}`;
+
+    // Hide after 3 seconds
+    messageTimeout = setTimeout(() => {
+
+        messageBox.classList.add("hidden");
+
+    }, 3000);
+
+}
+
+/* ================ normal search ================ */
 searchBtn.addEventListener("click", searchNotes);
 
 searchInput.addEventListener("keyup", function (e) {
@@ -55,7 +82,14 @@ async function searchNotes() {
 
     displayNotes(result);
 
-    noteCount.textContent = `${result.length} Notes`;
+    // Keep total notes count
+    noteCount.textContent = `Showing ${result.length} of ${totalNotes} Notes`;
+
+    // Show Clear Filter button
+    clearSearchBtn.style.display = "flex";
+
+    // Show search result message
+    showMessage(`${result.length} note(s) found.`, "info");
 
     pageInfo.textContent = "Search Results";
 
@@ -65,6 +99,23 @@ async function searchNotes() {
 
 }
 
+/* ========== show and hide clear filter =================== */
+async function clearSearch() {
+
+    searchInput.value = "";
+
+    currentPage = 1;
+
+    clearSearchBtn.style.display = "none";
+
+    await loadNotes();
+
+    showMessage("Search filter cleared.", "info");
+
+}
+const clearSearchBtn = document.getElementById("clearSearchBtn");
+
+clearSearchBtn.addEventListener("click", clearSearch);
 
 async function loadUsers() {
 
@@ -126,7 +177,7 @@ function displayNotes(noteArray = notes)  {
     notesList.replaceChildren();
 
     // Update total notes count
-    noteCount.textContent = `${notes.length} Notes`;
+    noteCount.textContent = `${totalNotes} Notes`;
     
     // Show message if there are no notes
     if (noteArray.length === 0)  {
@@ -258,6 +309,8 @@ function editNote(note) {
         behavior: "smooth"
     });
 
+    showMessage("Edit mode enabled. Update the note and click 'Update Note'.", "info");
+
 }
 
 /* ============= Delete note function ============== */
@@ -281,8 +334,18 @@ async function deleteNote(noteId) {
         if (!response.ok) {
             throw new Error("Failed to delete note");
         }
+        // If last note on current page is deleted,
+        // go to previous page (except Page 1)
+        if (notes.length === 1 && currentPage > 1) {
+
+            currentPage--;
+
+        }
 
         await loadNotes();
+        // Reload reports
+        await loadReports();
+        showMessage("Note deleted successfully.");
 
     }
 
@@ -290,7 +353,7 @@ async function deleteNote(noteId) {
 
         console.error(error);
 
-        alert("Unable to delete note.");
+        showMessage("Unable to delete note.", "error");
 
     }
 
@@ -452,6 +515,20 @@ async function createNote(event) {
 
         // Reload notes
         await loadNotes();
+        // Reload reports
+        await loadReports();
+
+        // Success message
+        if (method === "POST") {
+
+            showMessage("Note created successfully.");
+
+        }
+        else {
+
+            showMessage("Note updated successfully.");
+
+        }
 
     }
 
@@ -459,7 +536,7 @@ async function createNote(event) {
 
         console.error(error);
 
-        alert("Unable to save note.");
+        showMessage("Unable to save note.", "error");
 
     }
 
@@ -558,20 +635,22 @@ async function importNotes() {
 
         const result = await response.json();
 
-        alert(result.message);
-
+        // Success message
+        showMessage(result.message);
         bulkFile.value = "";
 
         importStatus.textContent = "No file selected.";
 
         await loadNotes();
+        // Reload reports
+        await loadReports();
 
     }
     catch (error) {
 
         console.error(error);
 
-        alert("Unable to import notes.");
+        showMessage("Unable to import notes.", "error");
 
     }
 
