@@ -7,10 +7,9 @@ from sqlalchemy import (
     ForeignKey
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from datetime import datetime
 
 from database import Base
-
 
 class User(Base):
     __tablename__ = "users"
@@ -31,11 +30,17 @@ class Note(Base):
     content = Column(Text, nullable=False)
     tags = Column(String(255), nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    from datetime import datetime
+
+    created_at = Column(
+        DateTime,
+        default=datetime.now
+    )
+
     updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now()
+        DateTime,
+        default=datetime.now,
+        onupdate=datetime.now
     )
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

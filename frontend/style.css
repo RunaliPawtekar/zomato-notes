@@ -1,90 +1,3 @@
-/* *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-
-    font-family:'Poppins',sans-serif;
-
-    background:#F4F7FB;
-
-} */
-
-/* =============== Create the Header =============== */
-
-/* header{
-
-    background:white;
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    padding:20px 50px;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-
-}
-
-.logo{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:15px;
-
-}
-
-.logo i{
-
-    font-size:34px;
-
-    color:#E23744;
-
-}
-
-.logo h1{
-
-    color:#E23744;
-
-}
-
-.logo p{
-
-    color:gray;
-
-    font-size:14px;
-
-}
-
-.profile{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:10px;
-
-    background:#F4F7FB;
-
-    padding:10px 18px;
-
-    border-radius:30px;
-
-}
-
-.profile i{
-
-    color:#E23744;
-
-} */
-
-
 *{
     margin:0;
     padding:0;
@@ -163,56 +76,9 @@ header{
 
 }
 
+/* ================= TOP DASHBOARD ================= */
 
-/* =============== Search bar =============== */
-
-/* .search-section{
-
-    width:90%;
-
-    margin:30px auto;
-
-    display:flex;
-
-    gap:15px;
-
-}
-
-.search-section input{
-
-    flex:1;
-
-    padding:15px;
-
-    border:none;
-
-    border-radius:12px;
-
-    font-size:16px;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-
-}
-
-.search-section button{
-
-    background:#E23744;
-
-    color:white;
-
-    border:none;
-
-    padding:15px 25px;
-
-    border-radius:12px;
-
-    cursor:pointer;
-
-    font-size:16px;
-
-} */
-
-.search{
+.top-dashboard{
 
     width:90%;
 
@@ -220,27 +86,51 @@ header{
 
     display:flex;
 
-    gap:15px;
+    gap:20px;
 
 }
 
-.search input{
+.search-card{
 
-    flex:1;
-
-    padding:15px;
+    width:50%;
 
     background:#1e293b;
 
-    color:white;
+    border-radius:12px;
 
-    border:none;
-
-    border-radius:10px;
+    padding:20px;
 
 }
 
-.search button{
+.smart-search{
+
+    width:50%;
+
+    background:#1e293b;
+
+    border-radius:12px;
+
+    padding:20px;
+
+}
+
+.search-box{
+
+    display:flex;
+
+    gap:15px;
+
+    margin-top:20px;
+
+}
+
+.search-box input{
+
+    flex:1;
+
+}
+
+.search-box button{
 
     background:#e23744;
 
@@ -248,9 +138,9 @@ header{
 
     border:none;
 
-    padding:15px 25px;
-
     border-radius:10px;
+
+    padding:12px 22px;
 
     cursor:pointer;
 
@@ -476,6 +366,204 @@ form button:hover{
     gap:15px;
 
 }
+
+.empty-notes {
+    width: 100%;
+    padding: 80px 20px;
+    text-align: center;
+    color: #cbd5e1;
+}
+
+.empty-notes i {
+    font-size: 60px;
+    color: #f97316;
+    margin-bottom: 20px;
+}
+
+.empty-notes h2 {
+    margin: 10px 0;
+    color: #ffffff;
+}
+
+.empty-notes p {
+    color: #94a3b8;
+    margin-top: 10px;
+}
+
+/* ===========================
+   Pagination
+=========================== */
+
+.pagination {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 18px;
+
+    margin: 30px 0 15px;
+
+    flex-wrap: wrap;
+
+}
+
+.pagination button {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    min-width: 120px;
+
+    padding: 12px 20px;
+
+    background: #ef4444;
+
+    color: #ffffff;
+
+    border: none;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+
+}
+
+.pagination button:hover:not(:disabled) {
+
+    background: #dc2626;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.35);
+
+}
+
+.pagination button:active:not(:disabled) {
+
+    transform: scale(0.97);
+
+}
+
+.pagination button:disabled {
+
+    background: #4b5563;
+
+    color: #9ca3af;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+
+    opacity: 0.7;
+
+}
+
+#pageInfo {
+
+    min-width: 140px;
+
+    padding: 12px 18px;
+
+    text-align: center;
+
+    background: #1f2937;
+
+    color: #f8fafc;
+
+    border: 1px solid #374151;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    letter-spacing: 0.5px;
+
+}
+
+/* ===========================
+   Tablet
+=========================== */
+
+@media (max-width: 768px) {
+
+    .pagination {
+
+        gap: 12px;
+
+    }
+
+    .pagination button {
+
+        min-width: 110px;
+
+        padding: 10px 16px;
+
+        font-size: 14px;
+
+    }
+
+    #pageInfo {
+
+        font-size: 14px;
+
+        min-width: 120px;
+
+    }
+
+}
+
+/* ===========================
+   Mobile
+=========================== */
+
+@media (max-width: 480px) {
+
+    .pagination {
+
+        flex-direction: column;
+
+        gap: 12px;
+
+        width: 100%;
+
+    }
+
+    .pagination button {
+
+        width: 100%;
+
+        max-width: 260px;
+
+    }
+
+    #pageInfo {
+
+        width: 100%;
+
+        max-width: 260px;
+
+    }
+
+}
+
 
 /* ================= STATES ================= */
 
@@ -771,7 +859,7 @@ form button:hover{
 
 /* =============== Report Grid =============== */
 
-.report-grid{
+/* .report-grid{
 
     display:grid;
 
@@ -781,8 +869,16 @@ form button:hover{
 
     margin-top:20px;
 
-}
+} */
+.report-grid{
 
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:15px;
+
+}
 /* =============== Report Cards =============== */
 
 .report-card{
@@ -1012,5 +1108,28 @@ footer{
     color:#CBD5E1;
 
     font-size:14px;
+
+}
+
+@media(max-width:900px){
+
+    .top-dashboard,
+    .dashboard,
+    .bottom-dashboard{
+
+        flex-direction:column;
+
+    }
+
+    .search-card,
+    .smart-search,
+    .left,
+    .right,
+    .bulk-import,
+    .reports{
+
+        width:100%;
+
+    }
 
 }

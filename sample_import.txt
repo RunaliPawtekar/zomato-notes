@@ -1,0 +1,57 @@
+Title: Payment Failed
+Content: Customer attempted to pay using UPI, but the payment gateway timed out. The transaction failed and the customer requested a refund.
+User: 1
+
+---
+
+Title: Wrong Order Delivered
+Content: Customer received Veg Biryani instead of the ordered Chicken Biryani. A replacement order was requested and initiated immediately.
+User: 2
+
+---
+
+Title: Delivery Delay
+Content: Rider reached the customer 35 minutes late because of heavy traffic and continuous rainfall. Customer requested compensation.
+User: 1
+
+---
+
+Title: Restaurant Closed
+Content: Restaurant unexpectedly closed before accepting the order. The order was cancelled automatically and the customer was refunded.
+User: 3
+
+---
+
+Title: Missing Item
+Content: Customer reported that the cold drink was missing from the delivered order. Refund was processed for the missing item.
+User: 2
+
+---
+
+Title: App Login Issue
+Content: Customer was unable to log in to the Zomato app due to an OTP verification failure. After clearing the app cache and requesting a new OTP, login was successful.
+User: 4
+
+---
+
+Title: Rider Unable to Contact Customer
+Content: Delivery partner tried calling the customer multiple times, but the phone was unreachable. The order was delayed until contact was established.
+User: 1
+
+---
+
+Title: Coupon Not Applied
+Content: Customer applied a valid discount coupon during checkout, but the discount was not reflected in the final payment amount.
+User: 3
+
+---
+
+Title: Duplicate Payment
+Content: Customer was charged twice for the same order because the payment button was clicked multiple times during a slow network response. One payment was refunded.
+User: 2
+
+---
+
+Title: Order Cancelled by Restaurant
+Content: Restaurant cancelled the order due to ingredient unavailability. Customer received a full refund and a compensation coupon.
+User: 4

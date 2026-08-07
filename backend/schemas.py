@@ -39,6 +39,7 @@ class NoteUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     tags: Optional[str] = None
+    user_id: Optional[int] = None
 
 
 class NoteResponse(NoteBase):
@@ -46,5 +47,6 @@ class NoteResponse(NoteBase):
     created_at: datetime
     updated_at: datetime
     user_id: int
+    user_name: str
 
     model_config = ConfigDict(from_attributes=True)
