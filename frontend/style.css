@@ -859,17 +859,6 @@ form button:hover{
 
 /* =============== Report Grid =============== */
 
-/* .report-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(2,1fr);
-
-    gap:15px;
-
-    margin-top:20px;
-
-} */
 .report-grid{
 
     display:grid;

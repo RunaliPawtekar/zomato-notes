@@ -123,7 +123,6 @@ loadUsers();
 function displayNotes(noteArray = notes)  {
 
     // Clear previous notes
-    //notesList.innerHTML = "";
     notesList.replaceChildren();
 
     // Update total notes count
