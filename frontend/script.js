@@ -6,6 +6,8 @@ let currentPage = 1;
 const notesPerPage = 3;
 
 let totalNotes = 0;
+let currentSort = "";
+let currentKeyword = "";
 
 const notesContainer = document.getElementById("notesContainer");
 const notesList = document.getElementById("notesList");
@@ -20,6 +22,7 @@ const saveBtn = document.getElementById("saveBtn");
 
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
+const sortBy = document.getElementById("sortBy");
 
 /* =========== Message ================== */
 
@@ -75,44 +78,91 @@ async function searchNotes() {
     }
 
     const response = await fetch(
+
         `http://127.0.0.1:8000/notes/search?keyword=${encodeURIComponent(keyword)}`
+
     );
+
+    if (!response.ok) {
+
+        alert("Search failed.");
+
+        return;
+
+    }
 
     const result = await response.json();
 
-    displayNotes(result);
+    // Update global variables
+    notes = result.notes;
 
-    // Keep total notes count
-    noteCount.textContent = `Showing ${result.length} of ${totalNotes} Notes`;
+    totalNotes = result.total;
 
-    // Show Clear Filter button
+    currentPage = 1;
+
+    // Display notes
+    displayNotes();
+
+    updatePagination();
+
     clearSearchBtn.style.display = "flex";
 
-    // Show search result message
-    showMessage(`${result.length} note(s) found.`, "info");
+    // Update count
+    noteCount.textContent =
+        `Showing ${notes.length} of ${totalNotes} Notes`;
 
-    pageInfo.textContent = "Search Results";
+    // Show clear button
+    clearSearchBtn.style.display = "flex";
 
-    prevBtn.disabled = true;
-
-    nextBtn.disabled = true;
+    // Message
+    showMessage(
+        `${totalNotes} note(s) found.`,
+        "info"
+    );
 
 }
 
 /* ========== show and hide clear filter =================== */
 async function clearSearch() {
 
+    // Clear normal search
     searchInput.value = "";
 
+    // Clear binary search
+    lookupTitle.value = "";
+
+    // Reset binary search algorithm
+    lookupAlgo.value = "iterative";
+
+    // Reset sorting
+    sortBy.selectedIndex = 0;
+    currentSort = "";
+
+    // Remove active quick tag
+    document
+        .querySelectorAll(".tag-btn")
+        .forEach(button => {
+
+            button.classList.remove("active");
+
+        });
+
+    // Reset pagination
     currentPage = 1;
 
+    // Hide clear filter button
     clearSearchBtn.style.display = "none";
 
+    // Load original notes
     await loadNotes();
 
-    showMessage("Search filter cleared.", "info");
+    showMessage(
+        "All filters cleared.",
+        "success"
+    );
 
 }
+
 const clearSearchBtn = document.getElementById("clearSearchBtn");
 
 clearSearchBtn.addEventListener("click", clearSearch);
@@ -289,6 +339,57 @@ function displayNotes(noteArray = notes)  {
 
 }
 
+/* sorting */
+async function loadSortedNotes() {
+
+    try {
+
+        const skip = (currentPage - 1) * notesPerPage;
+
+        const response = await fetch(
+            `http://127.0.0.1:8000/notes/search` +
+            `?sort_by=${encodeURIComponent(currentSort)}` +
+            `&skip=${skip}` +
+            `&limit=${notesPerPage}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to load sorted notes");
+        }
+
+        const data = await response.json();
+
+        notes = data.notes;
+        totalNotes = data.total;
+
+        displayNotes();
+        updatePagination();
+        clearSearchBtn.style.display = "flex";
+
+    }
+    catch (error) {
+
+        console.error(error);
+        alert("Unable to sort notes.");
+
+    }
+}
+
+
+sortBy.addEventListener("change", async () => {
+
+    currentSort = sortBy.value;
+
+    currentPage = 1;
+
+    if (currentSort === "") {
+        await loadNotes();
+    } else {
+        await loadSortedNotes();
+    }
+
+});
+
 /* ============== Edit note function ================ */
 let editingNoteId = null;
 
@@ -389,7 +490,11 @@ prevBtn.addEventListener("click", async function (e) {
 
         currentPage--;
 
-        await loadNotes();
+        if (currentSort) {
+            await loadSortedNotes();
+        } else {
+            await loadNotes();
+        }
 
         this.blur();
 
@@ -407,7 +512,11 @@ nextBtn.addEventListener("click", async function (e) {
 
         currentPage++;
 
-        await loadNotes();
+        if (currentSort) {
+            await loadSortedNotes();
+        } else {
+            await loadNotes();
+        }
 
         this.blur();
 
@@ -446,11 +555,13 @@ async function loadNotes() {
     }
 
 }
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
-    loadNotes();
+    await loadNotes();
 
-    loadReports();
+    await loadReports();
+
+    await loadQuickTags();
 
 });
 
@@ -654,6 +765,215 @@ async function importNotes() {
         console.error(error);
 
         showMessage("Unable to import notes.", "error");
+
+    }
+
+}
+
+async function lookupNote(){
+
+    const title = document
+        .getElementById("lookupTitle")
+        .value
+        .trim();
+
+    const algo = document
+        .getElementById("lookupAlgo")
+        .value;
+
+    if(title === ""){
+
+        alert("Enter title");
+
+        return;
+
+    }
+
+    try{
+
+        const response = await fetch(
+
+            `http://127.0.0.1:8000/notes/lookup` +
+
+            `?title=${encodeURIComponent(title)}` +
+
+            `&algo=${algo}`
+
+        );
+
+        if(!response.ok){
+
+            throw new Error();
+
+        }
+
+        const note = await response.json();
+
+        displayLookupResult(note);
+
+    }
+
+    catch{
+
+        alert("Note not found.");
+
+    }
+
+}
+
+function displayLookupResult(note){
+
+    notes = [note];
+
+    totalNotes = 1;
+
+    displayNotes();
+
+    updatePagination();
+    clearSearchBtn.style.display = "flex";
+
+}
+document
+.getElementById("lookupBtn")
+.addEventListener(
+
+    "click",
+
+    lookupNote
+
+);
+
+/* quick tag jump */
+
+async function loadQuickTags() {
+    
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/reports/tags"
+        );
+        
+        if (!response.ok) {
+            throw new Error("Unable to load tags");
+        }
+
+        const tags = await response.json();
+        
+        const container = document.getElementById("quickTagButtons");
+        
+        container.innerHTML = "";
+
+        tags.forEach(tag => {
+
+            const tagbtn = document.createElement("button");
+
+            tagbtn.className = "tag-btn";
+
+            tagbtn.textContent = tag.tag;
+
+            tagbtn.addEventListener("click", async () => {
+
+                document
+                    .querySelectorAll(".tag-btn")
+                    .forEach(button => {
+
+                    button.classList.remove("active");
+
+                    });
+
+                tagbtn.classList.add("active");
+
+                await quickFind(tag.tag);
+
+            });
+
+            container.appendChild(tagbtn);
+
+            tagbtn.addEventListener("click", async () => {
+
+                document
+                    .querySelectorAll(".tag-btn")
+                    .forEach(button => {
+
+                        button.classList.remove("active");
+
+                    });
+
+                // Add active only to the clicked button
+                tagbtn.classList.add("active");
+
+                await quickFind(tag.tag);
+
+            });
+
+        });
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+/* Quick Tag Jump */
+
+async function quickFind(tag) {
+
+    try {
+
+        const response = await fetch(
+
+            `http://127.0.0.1:8000/notes/quick-find?tag=${encodeURIComponent(tag)}`
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error("No matching note found");
+
+        }
+
+        const note = await response.json();
+
+        // Show only the matched note
+        notes = [note];
+
+        totalNotes = 1;
+
+        currentPage = 1;
+
+        displayNotes();
+
+        updatePagination();
+        clearSearchBtn.style.display = "flex";
+
+        noteCount.textContent = "Showing 1 Matching Note";
+
+        pageInfo.textContent = "Quick Tag Result";
+
+        prevBtn.disabled = true;
+
+        nextBtn.disabled = true;
+
+        clearSearchBtn.style.display = "flex";
+
+        showMessage(
+
+            `Showing first "${tag}" note.`,
+
+            "info"
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert("No matching note found.");
 
     }
 

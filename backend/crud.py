@@ -390,3 +390,66 @@ def get_user_notes_report(db: Session):
         }
         for row in result
     ]
+
+def get_notes_sorted_by_title(db: Session):
+
+    notes = (
+        db.query(models.Note)
+        .order_by(models.Note.title.asc())
+        .all()
+    )
+
+    for note in notes:
+        note.user_name = note.user.name
+
+    return notes
+
+def get_all_notes_for_search(db: Session):
+
+    notes = db.query(models.Note).all()
+
+    for note in notes:
+        note.user_name = note.user.name
+
+    return notes
+
+# report tags
+def get_tag_report(db: Session):
+
+    notes = db.query(models.Note).all()
+
+    tag_counts = {}
+
+    for note in notes:
+
+        if not note.tags:
+            continue
+
+        tags = note.tags.split(",")
+
+        for tag in tags:
+
+            tag = tag.strip().lower()
+
+            if tag == "":
+                continue
+
+            if tag not in tag_counts:
+
+                tag_counts[tag] = 0
+
+            tag_counts[tag] += 1
+
+    result = []
+
+    for tag, count in tag_counts.items():
+
+        result.append({
+
+            "tag": tag,
+
+            "count": count
+
+        })
+
+    return result

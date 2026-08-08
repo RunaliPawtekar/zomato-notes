@@ -11,6 +11,12 @@ from auth import verify_token
 import time
 from fastapi import BackgroundTasks
 from background_tasks import simulate_note_indexing
+from algorithms import (
+    insertion_sort_by_key,
+    binary_search_iterative,
+    binary_search_recursive,
+    linear_search
+)
 
 # Create FastAPI app
 app = FastAPI(
@@ -85,12 +91,110 @@ def create_note(
 
     return created_note
 
-@app.get("/notes/search", response_model=list[schemas.NoteResponse])
+@app.get("/notes/search")
 def search_notes(
-    keyword: str,
+    keyword: str | None = None,
+    sort_by: str = "created_at",
+    skip: int = 0,
+    limit: int = 3,
     db: Session = Depends(get_db)
 ):
-    return crud.search_notes(db, keyword)
+    # Get ALL notes from database
+    notes = crud.get_all_notes(
+        db=db,
+        skip=0,
+        limit=1000
+    )
+
+    # Convert database notes to dictionaries
+    items = []
+
+    for note in notes:
+        items.append({
+            "title": note.title,
+            "content": note.content,
+            "tags": note.tags,
+            "id": note.id,
+            "created_at": note.created_at,
+            "updated_at": note.updated_at,
+            "user_id": note.user_id,
+            "user_name": note.user_name
+        })
+
+    # -----------------------------
+    # SEARCH
+    # -----------------------------
+
+    if keyword:
+
+        keyword = keyword.lower()
+
+        filtered_items = []
+
+        for item in items:
+
+            content = (item["content"] or "").lower()
+
+            # Count keyword occurrences in content
+            score = content.count(keyword)
+
+            if score > 0:
+
+                item["score"] = score
+
+                filtered_items.append(item)
+
+        # Sort by score (highest first)
+        items = insertion_sort_by_key(
+            filtered_items,
+            "score"
+        )
+
+    # -----------------------------
+    # SORT
+    # -----------------------------
+
+    if not keyword:
+
+        allowed_keys = [
+            "title",
+            "content",
+            "tags",
+            "id",
+            "created_at",
+            "updated_at"
+        ]
+
+        if sort_by not in allowed_keys:
+            sort_by = "created_at"
+
+        items = insertion_sort_by_key(
+            items,
+            sort_by
+        )
+
+    # -----------------------------
+    # TOTAL
+    # -----------------------------
+
+    total = len(items)
+
+    # -----------------------------
+    # PAGINATION
+    # -----------------------------
+
+    paginated_items = items[
+        skip:skip + limit
+    ]
+
+    # -----------------------------
+    # RESPONSE
+    # -----------------------------
+
+    return {
+        "total": total,
+        "notes": paginated_items
+    }
 
 @app.get("/notes")
 def get_notes(
@@ -113,6 +217,104 @@ def get_notes(
         "total": total,
         "notes": notes
     }
+
+@app.get("/notes/lookup")
+def lookup_note(
+    title: str,
+    algo: str = "iterative",
+    db: Session = Depends(get_db)
+):
+
+    # Get notes sorted alphabetically
+    notes = crud.get_notes_sorted_by_title(db)
+
+    # Create normalized title list
+    titles = [
+        note.title.strip().lower()
+        for note in notes
+    ]
+
+    # Normalize input title
+    target = title.strip().lower()
+
+    # Select algorithm
+    if algo == "recursive":
+
+        index = binary_search_recursive(
+            titles,
+            target,
+            0,
+            len(titles) - 1
+        )
+
+    else:
+
+        index = binary_search_iterative(
+            titles,
+            target
+        )
+
+    # Not found
+    if index == -1:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Note not found"
+        )
+
+    # Return original note
+    note = notes[index]
+
+    return {
+        "id": note.id,
+        "title": note.title,
+        "content": note.content,
+        "tags": note.tags,
+        "created_at": note.created_at,
+        "updated_at": note.updated_at,
+        "user_id": note.user_id,
+        "user_name": note.user_name
+    }
+
+@app.get("/notes/quick-find")
+def quick_find_note(
+    tag: str,
+    db: Session = Depends(get_db)
+):
+
+    notes = crud.get_all_notes_for_search(db)
+
+    items = []
+
+    for note in notes:
+
+        items.append({
+
+            "id": note.id,
+            "title": note.title,
+            "content": note.content,
+            "tags": note.tags,
+            "created_at": note.created_at,
+            "updated_at": note.updated_at,
+            "user_id": note.user_id,
+            "user_name": note.user_name
+
+        })
+
+    result = linear_search(
+        items,
+        "tags",
+        tag
+    )
+
+    if result is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Note not found"
+        )
+
+    return result
 
 
 @app.get("/notes/{note_id}", response_model=schemas.NoteResponse)
@@ -187,3 +389,10 @@ def long_notes(db: Session = Depends(get_db)):
 @app.get("/reports/user-notes")
 def user_notes_report(db: Session = Depends(get_db)):
     return crud.get_user_notes_report(db)
+
+# report/tags
+@app.get("/reports/tags")
+def get_tag_report(
+    db: Session = Depends(get_db)
+):
+    return crud.get_tag_report(db)

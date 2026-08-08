@@ -83,6 +83,37 @@
                 <i class="fa-solid fa-magnifying-glass"></i>
                 Search
             </button>
+            
+
+        </div>
+
+        <div class="lookup-container">
+
+            <input
+                id="lookupTitle"
+                type="text"
+                placeholder="Search exact note title..."
+            >
+
+            <select id="lookupAlgo">
+
+                <option value="iterative">
+                    Iterative
+                </option>
+
+                <option value="recursive">
+                    Recursive
+                </option>
+
+            </select>
+
+            <button id="lookupBtn">
+
+                <i class="fa-solid fa-location-crosshairs"></i>
+
+                Find
+
+            </button>
 
         </div>
 
@@ -190,6 +221,14 @@
 
         </form>
 
+        <div class="quick-tag-container">
+
+            <label>Quick Tag Jump</label>
+
+            <div id="quickTagButtons"></div>
+
+        </div>
+
     </div>
 
     <! =============== Notes List div =============== >
@@ -205,6 +244,14 @@
             </h2>
 
             <div class="notes-actions">
+
+                <select id="sortBy" aria-label="Sort notes">
+                    <option value="" selected disabled>Sort by</option>
+                    <option value="created_at">Created Date</option>
+                    <option value="title">Title</option>
+                    <option value="tags">Tags</option>
+                    <option value="id">ID</option>
+                </select>
 
                 <span id="noteCount">
                     Total Notes: 0
