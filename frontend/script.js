@@ -327,7 +327,10 @@ async function deleteNote(noteId) {
         const response = await fetch(
             `http://127.0.0.1:8000/notes/${noteId}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "x-token": "zomato123"
+                }
             }
         );
 
@@ -622,7 +625,7 @@ async function importNotes() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:8000/notes/import",
+            "http://127.0.0.1:8000/notes/import?owner_id=1",
             {
                 method: "POST",
                 body: formData

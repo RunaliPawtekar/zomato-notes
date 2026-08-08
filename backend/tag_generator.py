@@ -1,36 +1,39 @@
-# tag_generator.py
-
 def generate_tags(text: str):
 
     text = text.lower()
 
-    keywords = {
+    # Login
+    if any(word in text for word in [
+        "login", "log in", "signin", "otp", "password"
+    ]):
+        return "login"
 
-        "payment": ["payment", "upi", "refund", "gateway", "transaction"],
-        "order": ["order", "delivery", "restaurant", "cancel"],
-        "customer": ["customer", "user", "complaint"],
-        "login": ["login", "signin", "password", "otp"],
-        "database": ["database", "sql", "db"],
-        "server": ["server", "api", "backend", "timeout"],
-        "app": ["app", "android", "ios", "mobile"],
-        "network": ["network", "internet", "connection"]
+    # Coupon
+    if "discount coupon" in text or "coupon" in text:
+        return "coupon"
 
-    }
+    # Payment / Refund
+    if any(word in text for word in [
+        "payment", "upi", "gateway", "transaction", "refund", "charged twice"
+    ]):
+        return "payment"
 
-    tags = []
+    # Delivery
+    if any(word in text for word in [
+        "delivery", "rider", "traffic", "late"
+    ]):
+        return "delivery"
 
-    for tag, words in keywords.items():
+    # Order / Restaurant
+    if any(word in text for word in [
+        "order", "restaurant", "biryani", "cancelled", "cancel"
+    ]):
+        return "order"
 
-        for word in words:
+    # Customer
+    if any(word in text for word in [
+        "customer", "complaint", "user"
+    ]):
+        return "customer"
 
-            if word in text:
-
-                tags.append(tag)
-
-                break
-
-    if not tags:
-
-        tags.append("general")
-
-    return ",".join(tags)
+    return "general"

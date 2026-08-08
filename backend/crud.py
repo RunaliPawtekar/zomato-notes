@@ -5,13 +5,16 @@ import schemas
 from ai_tags import generate_tags
 
 # bulk import
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
+from tag_generator import generate_tags
 
 # for normal search
 from sqlalchemy import or_
 
 # report
 from collections import Counter
+# tag summery
+from sqlalchemy import text
 
 
 # ======= Create user
@@ -65,10 +68,19 @@ def create_note(db: Session, note: schemas.NoteCreate):
 
 # ========== Get notes with pagination
 
-def get_all_notes(db: Session, skip: int = 0, limit: int = 3):
+def get_all_notes(db: Session,skip: int = 0,limit: int = 3,tag: str | None = None):
+
+    query = db.query(models.Note)
+
+    # Optional tag filter
+    if tag:
+
+        query = query.filter(
+            models.Note.tags.ilike(f"%{tag}%")
+        )
 
     notes = (
-        db.query(models.Note)
+        query
         .order_by(models.Note.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -82,9 +94,17 @@ def get_all_notes(db: Session, skip: int = 0, limit: int = 3):
 
 # ========== Total notes count
 
-def get_notes_count(db: Session):
+def get_notes_count(db: Session,tag: str | None = None):
 
-    return db.query(models.Note).count()
+    query = db.query(models.Note)
+
+    if tag:
+
+        query = query.filter(
+            models.Note.tags.ilike(f"%{tag}%")
+        )
+
+    return query.count()
 
 # ======== get note by id
 
@@ -141,54 +161,65 @@ def delete_note(db: Session, note_id: int):
 
     return db_note
 
-# bulk import 
+# ==========================
+# Bulk Import Notes
+# ==========================
+def import_notes(
+    db: Session,
+    owner_id: int,
+    file: UploadFile
+):
 
-def import_notes(db: Session, file: UploadFile):
+    # ==========================
+    # Check Owner Exists
+    # ==========================
+    user = (
+        db.query(models.User)
+        .filter(models.User.id == owner_id)
+        .first()
+    )
 
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # ==========================
+    # Read File
+    # ==========================
     content = file.file.read().decode("utf-8")
 
-    notes = content.split("---")
-
-    notes = [note.strip() for note in notes if note.strip()]
+    lines = [
+        line.strip()
+        for line in content.splitlines()
+        if line.strip()
+    ]
 
     imported_count = 0
 
-    for note in notes:
+    # ==========================
+    # Create Notes
+    # ==========================
+    for line in lines:
 
-        lines = note.splitlines()
-
-        note_data = {}
-
-        for line in lines:
-
-            if line.startswith("Title:"):
-                note_data["title"] = line.replace("Title:", "").strip()
-
-            elif line.startswith("Content:"):
-                note_data["content"] = line.replace("Content:", "").strip()
-
-            elif line.startswith("User:"):
-                note_data["user_id"] = int(line.replace("User:", "").strip())
-
-        # ==========================
-        # Check if the user exists
-        # ==========================
-        user = db.query(models.User).filter(
-            models.User.id == note_data["user_id"]
-        ).first()
-
-        if not user:
-            continue
-
-        # ==========================
-        # Create Note
-        # ==========================
+        title = (
+            line[:50] + "..."
+            if len(line) > 50
+            else line
+        )
         db_note = models.Note(
-            title=note_data["title"],
-            content=note_data["content"],
-            tags=generate_tags(note_data["content"]),
-            user_id=note_data["user_id"],
+
+            title=title,
+
+            content=line,
+
+            tags=generate_tags(line),
+
+            user_id=owner_id,
+
             is_imported=True
+
         )
 
         db.add(db_note)
@@ -272,3 +303,90 @@ def get_reports(db: Session):
         "imported_notes": imported_notes
 
     }
+
+# tag summery
+def get_tag_summary(db: Session):
+
+    query = text("""
+        SELECT
+            tags,
+            COUNT(*) AS note_count
+        FROM notes
+        WHERE tags IS NOT NULL
+        GROUP BY tags
+        HAVING COUNT(*) > 1
+        ORDER BY note_count DESC
+    """)
+
+    result = db.execute(query)
+
+    return [
+        {
+            "tag": row.tags,
+            "count": row.note_count
+        }
+        for row in result
+    ]
+
+# long notes
+def get_long_notes(db: Session):
+
+    result = db.execute(
+        text("""
+            SELECT
+                id,
+                title,
+                content,
+                tags
+            FROM notes
+            WHERE LEN(content) >
+            (
+                SELECT AVG(LEN(content))
+                FROM notes
+            )
+            ORDER BY LEN(content) DESC
+        """)
+    )
+
+    return [
+        {
+            "id": row.id,
+            "title": row.title,
+            "content": row.content,
+            "tag": row.tags
+        }
+        for row in result
+    ]
+
+# user notes
+def get_user_notes_report(db: Session):
+
+    result = db.execute(
+        text("""
+            SELECT
+                u.id,
+                u.name,
+                u.email,
+                COUNT(n.id) AS total_notes
+            FROM users u
+            LEFT JOIN notes n
+                ON u.id = n.user_id
+            GROUP BY
+                u.id,
+                u.name,
+                u.email
+            ORDER BY
+                total_notes DESC,
+                u.name
+        """)
+    )
+
+    return [
+        {
+            "user_id": row.id,
+            "name": row.name,
+            "email": row.email,
+            "total_notes": row.total_notes
+        }
+        for row in result
+    ]
