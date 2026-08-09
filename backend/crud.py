@@ -16,6 +16,10 @@ from collections import Counter
 # tag summery
 from sqlalchemy import text
 
+import json
+
+from ai_service import get_ai_response
+
 
 # ======= Create user
 
@@ -161,9 +165,29 @@ def delete_note(db: Session, note_id: int):
 
     return db_note
 
+
+# ==========================
+# Select Primary Tag
+# ==========================
+
+def get_primary_tag(title: str, tags: list) -> str:
+
+    title_words = title.lower().split()
+
+    for word in title_words:
+
+        for tag in tags:
+
+            if word == tag.lower():
+                return tag
+
+    return tags[0]
+
+
 # ==========================
 # Bulk Import Notes
 # ==========================
+
 def import_notes(
     db: Session,
     owner_id: int,
@@ -203,18 +227,28 @@ def import_notes(
     # ==========================
     for line in lines:
 
-        title = (
-            line[:50] + "..."
-            if len(line) > 50
-            else line
+        # Generate AI response
+        ai_response = get_ai_response(
+            user_message=line,
+            system_prompt=""
         )
+
+        ai_data = json.loads(ai_response)
+
+        # Select one meaningful tag
+        primary_tag = get_primary_tag(
+            ai_data["title"],
+            ai_data["tags"]
+        )
+
+        # Create Note
         db_note = models.Note(
 
-            title=title,
+            title=ai_data["title"],
 
             content=line,
 
-            tags=generate_tags(line),
+            tags=primary_tag,
 
             user_id=owner_id,
 
@@ -234,17 +268,33 @@ def import_notes(
 
 # normal search
 
+from sqlalchemy import or_, and_
+
 def search_notes(db: Session, keyword: str):
+
+    words = keyword.strip().split()
+
+    filters = []
+
+    for word in words:
+
+        filters.append(
+
+            or_(
+
+                models.Note.title.ilike(f"%{word}%"),
+
+                models.Note.content.ilike(f"%{word}%"),
+
+                models.Note.tags.ilike(f"%{word}%")
+
+            )
+
+        )
 
     notes = (
         db.query(models.Note)
-        .filter(
-            or_(
-                models.Note.title.ilike(f"%{keyword}%"),
-                models.Note.content.ilike(f"%{keyword}%"),
-                models.Note.tags.ilike(f"%{keyword}%")
-            )
-        )
+        .filter(and_(*filters))
         .order_by(models.Note.created_at.desc())
         .all()
     )
@@ -453,3 +503,8 @@ def get_tag_report(db: Session):
         })
 
     return result
+
+# smart search
+def smart_search_notes(db: Session):
+
+    return db.query(models.Note).all()

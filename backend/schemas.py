@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
@@ -42,11 +42,19 @@ class NoteUpdate(BaseModel):
     user_id: Optional[int] = None
 
 
+class AISuggestion(BaseModel):
+
+    tags: List[str]
+
+    summary: str
+
+
 class NoteResponse(NoteBase):
     id: int
     created_at: datetime
     updated_at: datetime
     user_id: int
     user_name: str
+    ai_suggestion: Optional[AISuggestion] = None
 
     model_config = ConfigDict(from_attributes=True)

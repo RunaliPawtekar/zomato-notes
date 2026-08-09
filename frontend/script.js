@@ -23,6 +23,15 @@ const saveBtn = document.getElementById("saveBtn");
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 const sortBy = document.getElementById("sortBy");
+/* smart search */
+const smartSearchInput =
+document.getElementById("smartSearchInput");
+
+const smartSearchBtn =
+document.getElementById("smartSearchBtn");
+
+const smartSearchResults =
+document.getElementById("smartSearchResults");
 
 /* =========== Message ================== */
 
@@ -122,11 +131,15 @@ async function searchNotes() {
 
 }
 
+
 /* ========== show and hide clear filter =================== */
 async function clearSearch() {
 
     // Clear normal search
     searchInput.value = "";
+
+    // clear smart search
+    smartSearchInput.value = "";
 
     // Clear binary search
     lookupTitle.value = "";
@@ -166,6 +179,77 @@ async function clearSearch() {
 const clearSearchBtn = document.getElementById("clearSearchBtn");
 
 clearSearchBtn.addEventListener("click", clearSearch);
+
+
+/* smart search */
+async function smartSearch() {
+
+    const query = smartSearchInput.value.trim();
+
+    if (!query) {
+
+        showMessage("Enter search text.", "warning");
+
+        return;
+
+    }
+
+    try {
+
+        const response = await fetch(
+            `http://127.0.0.1:8000/notes/smart-search?q=${encodeURIComponent(query)}`
+        );
+
+        if (!response.ok) {
+
+            throw new Error("Smart Search failed.");
+
+        }
+
+        const results = await response.json();
+
+        notes = results;
+
+        totalNotes = results.length;
+
+        currentPage = 1;
+
+        displayNotes(results);
+
+        updatePagination();
+
+        clearSearchBtn.style.display = "flex";
+
+        showMessage("Smart Search completed.");
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showMessage("Unable to perform Smart Search.", "error");
+
+    }
+
+}
+smartSearchBtn.addEventListener(
+    "click",
+    smartSearch
+);
+smartSearchInput.addEventListener(
+    "keypress",
+    function (event) {
+
+        if (event.key === "Enter") {
+
+            smartSearch();
+
+        }
+
+    }
+);
+
 
 async function loadUsers() {
 
@@ -282,6 +366,105 @@ function displayNotes(noteArray = notes)  {
                 ${note.content}
 
             </p>
+            
+            ${note.ai_suggestion ? (() => {
+
+                const currentTag = (note.tags || "").trim().toLowerCase();
+
+                const suggestedTag = note.ai_suggestion.tags.find(
+                    tag => tag.toLowerCase() !== currentTag
+                );
+
+                return `
+
+                    <div class="ai-panel">
+
+                        <h4>🤖 AI Suggests</h4>
+
+                        <p>
+
+                            <strong>Summary:</strong>
+
+                            ${note.ai_suggestion.summary}
+
+                        </p>
+
+                        <div class="ai-tags">
+
+                            ${note.ai_suggestion.tags.map(tag => `
+
+                                <span class="ai-tag">
+
+                                    ${tag}
+
+                                </span>
+
+                            `).join("")}
+
+                        </div>
+
+                        ${
+                            suggestedTag
+
+                            ?
+
+                            `
+                                <div class="ai-action-buttons">
+
+                                    <button
+                                        class="apply-tag-btn"
+                                        data-id="${note.id}"
+                                        data-tag="${suggestedTag}">
+
+                                        Apply "${suggestedTag}" as Tag
+
+                                    </button>
+
+                                    <button
+                                        class="close-ai-btn"
+                                        data-id="${note.id}">
+
+                                        Close
+
+                                    </button>
+
+                                </div>
+                            `
+
+                            :
+
+                            `
+                                <div class="ai-action-buttons">
+
+                                    <button
+                                        class="apply-tag-btn"
+                                        disabled>
+
+                                        ✓ Already Applied
+
+                                    </button>
+
+                                    <button
+                                        class="close-ai-btn"
+                                        data-id="${note.id}">
+
+                                        Close
+
+                                    </button>
+
+                                </div>
+                            `
+                        }
+
+                    </div>
+
+                `;
+
+            })() : ""}
+
+
+
+
 
             <div class="tags">
 
@@ -325,6 +508,32 @@ function displayNotes(noteArray = notes)  {
 
         notesList.append(card);
 
+        const applyBtn = card.querySelector(".apply-tag-btn");
+
+        if (applyBtn && !applyBtn.disabled) {
+
+            applyBtn.addEventListener("click", () => {
+
+                applySuggestedTag(
+
+                    note.id,
+
+                    applyBtn.dataset.tag
+
+                );
+
+             });
+
+        }
+
+        const closeBtn = card.querySelector(".close-ai-btn");
+        if(closeBtn){
+            console.log("close button")
+            closeBtn.addEventListener("click", () => {
+                loadNotes()
+            })
+        }
+        
         // Edit button
         card.querySelector(".edit-btn").addEventListener("click", () => {
             editNote(note);
@@ -616,6 +825,8 @@ async function createNote(event) {
 
         }
 
+        const savedNote = await response.json();
+
         // Reset form
         noteForm.reset();
 
@@ -627,8 +838,25 @@ async function createNote(event) {
             Save Note
         `;
 
-        // Reload notes
-        await loadNotes();
+        // Show the newly created note immediately
+        if (method === "POST") {
+
+            notes.unshift(savedNote);
+
+            totalNotes++;
+
+            currentPage = 1;
+
+            displayNotes();
+
+            updatePagination();
+
+        }
+        else {
+
+            await loadNotes();
+
+        }
         // Reload reports
         await loadReports();
 
@@ -659,7 +887,51 @@ async function createNote(event) {
 noteForm.addEventListener("submit", createNote);
 
 
+async function applySuggestedTag(noteId, newTag) {
 
+    console.log("Note ID:", noteId);
+    console.log("New Tag:", newTag);
+
+    const payload = {
+        tags: newTag
+    };
+
+    console.log("Payload:", payload);
+
+    try {
+
+        const response = await fetch(
+            `http://127.0.0.1:8000/notes/${noteId}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        const result = await response.json();
+
+        console.log("Response:", result);
+
+        if (!response.ok) {
+            throw new Error("Unable to apply AI tag.");
+        }
+
+        showMessage(`Tag changed to "${newTag}" successfully.`);
+
+        await loadNotes();
+        await loadReports();
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
 
 /* =============== Report =============== */
 
